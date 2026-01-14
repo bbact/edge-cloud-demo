@@ -42,7 +42,7 @@ docker-compose up
 pip install kafka-python
 python edge/sensor_simulator.py
 
-7. 可扩展方向
+## 7. 可扩展方向
 接入真实嵌入式设备或 MCU
 使用 Redis / 数据库保存告警状态
 接入可视化监控系统（如 Grafana）
