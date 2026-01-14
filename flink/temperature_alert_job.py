@@ -1,11 +1,19 @@
-from pyflink.datastream import StreamExecutionEnvironment
+ffrom pyflink.datastream import StreamExecutionEnvironment
 from pyflink.datastream.connectors.kafka import KafkaSource
 from pyflink.common.serialization import SimpleStringSchema
 import json
+import redis
 
-def is_abnormal(value):
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+
+def handle_abnormal(value):
     data = json.loads(value)
-    return data["temperature"] > 80
+    if data["temperature"] > 80:
+        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+        key = f"alert:{data['device_id']}"
+        r.set(key, json.dumps(data))
+        print(f"ALERT saved to redis: {data}")
 
 env = StreamExecutionEnvironment.get_execution_environment()
 
@@ -18,8 +26,6 @@ source = KafkaSource.builder() \
 
 stream = env.from_source(source, watermark_strategy=None, source_name="kafka-source")
 
-abnormal_stream = stream.filter(is_abnormal)
+stream.map(handle_abnormal)
 
-abnormal_stream.print()
-
-env.execute("Temperature Alert Job")
+env.execute("Temperature Alert with Redis")
