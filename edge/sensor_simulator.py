@@ -6,7 +6,7 @@ import time
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
+BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:19092")
 TOPIC = os.environ.get("KAFKA_TOPIC", "sensor-data")
 INTERVAL = float(os.environ.get("SEND_INTERVAL", "2"))
 

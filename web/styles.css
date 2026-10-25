@@ -75,6 +75,7 @@ h1 { font-size: 28px; font-weight: 650; }
 
 .badge.normal { color: var(--ok); background: #163528; }
 .badge.alert { color: #ffd7d7; background: #5c2424; }
+.badge.offline { color: var(--amber); background: #3a3016; }
 
 .temp {
   margin: 18px 0 8px;
@@ -87,6 +88,8 @@ h1 { font-size: 28px; font-weight: 650; }
 
 .card.alert { border-color: #6d3030; }
 .card.alert .temp { color: var(--alert); }
+.card.offline { border-color: #6a5a2e; }
+.card.offline .temp { color: var(--muted); }
 
 .alerts { padding-bottom: 32px; }
 

@@ -6,9 +6,9 @@ import redis
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
 
-from cloud.rules import judge, next_event
+from cloud.rules import judge, next_event, temperature_value
 
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
+BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:19092")
 TOPIC = os.environ.get("KAFKA_TOPIC", "sensor-data")
 GROUP = os.environ.get("KAFKA_GROUP", "alert-processor")
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
@@ -35,9 +35,8 @@ def connect_consumer():
                 TOPIC,
                 bootstrap_servers=BOOTSTRAP,
                 group_id=GROUP,
-                auto_offset_reset="latest",
+                auto_offset_reset="earliest",
                 enable_auto_commit=True,
-                value_deserializer=lambda raw: json.loads(raw.decode("utf-8")),
             )
             print(f"consuming {TOPIC} from {BOOTSTRAP}")
             return consumer
@@ -47,6 +46,8 @@ def connect_consumer():
 
 
 def apply_reading(client, data):
+    if temperature_value(data.get("temperature")) is None or "device_id" not in data:
+        raise ValueError(f"invalid reading: {data}")
     device_id = data["device_id"]
     key = f"device:{device_id}"
     previous = client.get(key)
@@ -71,11 +72,19 @@ def apply_reading(client, data):
     return record
 
 
+def handle_message(client, raw):
+    data = json.loads(raw.decode("utf-8"))
+    apply_reading(client, data)
+
+
 def main():
     client = connect_redis()
     consumer = connect_consumer()
     for message in consumer:
-        apply_reading(client, message.value)
+        try:
+            handle_message(client, message.value)
+        except (ValueError, KeyError, TypeError, AttributeError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            print(f"skip bad message: {exc}")
 
 
 if __name__ == "__main__":

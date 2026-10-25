@@ -1,13 +1,17 @@
 import json
 import os
+import time
 from pathlib import Path
 
 import redis
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from cloud.rules import display_status
+
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
+SEND_INTERVAL = float(os.environ.get("SEND_INTERVAL", "2"))
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 app = FastAPI(title="边缘到云端实时监测")
@@ -26,11 +30,14 @@ def health():
 @app.get("/api/devices")
 def devices():
     store = client()
+    now = time.time()
     items = []
     for key in store.scan_iter("device:*"):
         raw = store.get(key)
         if raw:
-            items.append(json.loads(raw))
+            item = json.loads(raw)
+            item["status"] = display_status(item, now, SEND_INTERVAL)
+            items.append(item)
     items.sort(key=lambda item: item["device_id"])
     return items
 

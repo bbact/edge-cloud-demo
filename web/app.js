@@ -6,13 +6,15 @@ function clock(timestamp) {
   return new Date(timestamp * 1000).toLocaleString("zh-CN", { hour12: false });
 }
 
+const statusLabel = { normal: "正常", alert: "告警", offline: "离线" };
+
 function deviceCard(device) {
-  const alert = device.status === "alert";
+  const label = statusLabel[device.status] || device.status;
   return `
-    <article class="card ${alert ? "alert" : ""}">
+    <article class="card ${device.status}">
       <header>
         <strong>${device.name}</strong>
-        <span class="badge ${device.status}">${alert ? "告警" : "正常"}</span>
+        <span class="badge ${device.status}">${label}</span>
       </header>
       <div class="temp">${device.temperature.toFixed(1)}<span>°C</span></div>
       <p class="meta">${device.device_id} · 湿度 ${device.humidity.toFixed(1)}% · ${clock(device.timestamp)}</p>
