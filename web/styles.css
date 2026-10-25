@@ -1,0 +1,104 @@
+:root {
+  color-scheme: dark;
+  --bg: #101418;
+  --card: #1b232c;
+  --line: #2d3946;
+  --text: #e8eef4;
+  --muted: #8ea0b3;
+  --ok: #3cbe86;
+  --alert: #ef5b5b;
+  --amber: #e2b657;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 "PingFang SC", "Noto Sans SC", sans-serif;
+}
+
+header, .alerts { padding: 28px 32px 0; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.eyebrow, .section-head p, .meta { color: var(--muted); }
+
+h1, h2, p { margin: 0; }
+
+h1 { font-size: 28px; font-weight: 650; }
+
+.status {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+.status.live { color: var(--ok); border-color: #245c44; }
+.status.down { color: var(--alert); border-color: #6d3030; }
+
+.devices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px 32px;
+}
+
+.card, .alert-row, .empty {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.card { padding: 18px; }
+
+.card header, .alert-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.badge.normal { color: var(--ok); background: #163528; }
+.badge.alert { color: #ffd7d7; background: #5c2424; }
+
+.temp {
+  margin: 18px 0 8px;
+  font-size: 42px;
+  font-weight: 680;
+  letter-spacing: -0.04em;
+}
+
+.temp span { font-size: 18px; color: var(--muted); margin-left: 4px; }
+
+.card.alert { border-color: #6d3030; }
+.card.alert .temp { color: var(--alert); }
+
+.alerts { padding-bottom: 32px; }
+
+.section-head { margin-bottom: 14px; }
+
+#alert-list { display: grid; gap: 8px; }
+
+.alert-row, .empty { padding: 12px 14px; }
+
+.alert-row strong { font-weight: 620; }
+
+@media (max-width: 800px) {
+  header, .alerts { padding-left: 16px; padding-right: 16px; }
+  .devices { grid-template-columns: 1fr; padding: 16px; }
+}

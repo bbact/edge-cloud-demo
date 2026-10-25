@@ -1,59 +1,65 @@
-# Edge to Cloud Real-time Monitoring System
+# 边缘到云端实时监测
 
-## 1. 项目背景
-在物联网和工业场景中，嵌入式设备会持续产生运行数据。
-如果缺乏实时分析与告警机制，设备异常往往无法被及时发现。
-本项目通过模拟边缘设备数据采集，构建了一条从设备侧到云端的实时处理与告警链路。
+嵌入式设备持续上报运行数据。这条演示链路把数据送到云端，温度超过 80°C 时写入告警，并在页面上查看当前状态。
 
-## 2. 项目目标
-- 模拟嵌入式设备周期性上报传感器数据
-- 构建设备数据到云端的实时传输链路
-- 对设备异常状态进行实时检测与告警存储
-- 展示边缘计算与云端实时处理的协同方式
+## 链路
 
-## 3. 技术栈
-- Python：嵌入式设备数据模拟
-- Kafka：设备数据消息队列，解耦数据生产与消费
-- Flink（PyFlink）：实时流处理与异常检测
-- Redis：异常设备告警状态存储
-- Docker Compose：组件统一部署与管理
+```text
+设备模拟器
+    ↓  sensor-data
+Kafka
+    ↓
+实时处理
+    ↓  device:{设备号}、alert:{设备号}、告警记录
+Redis
+    ↓
+监测页面  http://localhost:8000
+```
 
-## 4. 系统架构
-边缘设备模拟
-↓
-Kafka（sensor-data）
-↓
-Flink 实时处理
-↓
-Redis 告警存储
+三台模拟设备大约每 2 秒上报一次温度和湿度。一号、二号车间以正常温度为主，老化测试台更容易超过 80°C。告警只在状态发生变化时记录一次，温度回到 80°C 及以下时记录恢复。
 
-## 5. 核心实现说明
-- 边缘侧通过 Python 程序模拟设备持续上报温度数据
-- Kafka 作为消息队列，缓冲设备数据并解耦上下游模块
-- Flink 实时消费 Kafka 数据，对温度超过阈值（>80）的设备判定为异常
-- 异常设备数据会以 `alert:{device_id}` 的形式写入 Redis，用于后续告警或查询
+## 启动
 
-## 6. 项目结构
-edge-cloud-demo/
-├── edge/ # 边缘侧设备数据模拟
-│ └── sensor_simulator.py
-├── flink/ # 实时计算与告警逻辑
-│ └── temperature_alert_job.py
-├── docker-compose.yml # Kafka / Redis 环境部署
-└── README.md
+需要 Docker Desktop。
 
-## 7. 运行方式（可选）
 ```bash
-docker-compose up
-pip install kafka-python redis pyflink
-python edge/sensor_simulator.py
+docker compose up --build
+```
 
-8. 可扩展方向
+浏览器打开 http://localhost:8000 。
 
-接入真实嵌入式设备或 MCU
+停止：
 
-引入设备状态持久化数据库
+```bash
+docker compose down
+```
 
-增加可视化监控与告警推送
+## 本地只启动消息队列
 
-引入机器学习模型进行设备故障预测
+Kafka 对容器内使用 `kafka:29092`，对宿主机使用 `localhost:9092`。
+
+```bash
+docker compose up -d kafka redis
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python edge/sensor_simulator.py
+.venv/bin/python -m cloud.processor
+.venv/bin/uvicorn cloud.api:app --host 127.0.0.1 --port 8000
+```
+
+## 规则测试
+
+```bash
+python3 -m unittest tests/test_rules.py
+```
+
+## 目录
+
+```text
+edge/sensor_simulator.py    设备数据模拟
+cloud/processor.py          消费 Kafka，按温度阈值写 Redis
+cloud/rules.py              告警判定
+cloud/api.py                查询接口和页面
+web/                        监测页面
+docker-compose.yml          Kafka、Redis、模拟器、处理和页面
+```
